@@ -217,6 +217,7 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win10_x86\amd64\</OutDir>
     <IntDir>objchk_win10_x86\amd64\</IntDir>
+    <LibraryPath>..\..\VirtIO\objchk_win10_amd64\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -423,6 +424,7 @@
     <ClInclude Include="..\common\bitops.h" />
     <ClInclude Include="..\common\helper.h" />
     <ClInclude Include="driver.h" />
+    <ClInclude Include="driver_3d.h" />
     <ClInclude Include="viogpudo.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -431,6 +433,7 @@
     <ClCompile Include="..\common\viogpu_pci.cpp" />
     <ClCompile Include="..\common\viogpu_queue.cpp" />
     <ClCompile Include="driver.cpp" />
+    <ClCompile Include="driver_3d.cpp" />
     <ClCompile Include="viogpudo.cpp" />
     <ClCompile Include="..\common\baseobj.cpp" />
     <ClCompile Include="..\common\bitops.cpp" />
@@ -480,6 +483,11 @@
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VirtIO\VirtioLib.vcxproj">
+      <Project>{01d87c47-437a-4a16-8fd9-33fa5c99339e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

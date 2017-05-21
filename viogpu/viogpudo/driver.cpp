@@ -1,4 +1,5 @@
 #include "driver.h"
+#include "driver_3d.h"
 #include "viogpudo.h"
 #include "helper.h"
 #include "baseobj.h"
@@ -24,7 +25,7 @@ void InitializeDebugPrints(IN PDRIVER_OBJECT  DriverObject, IN PUNICODE_STRING R
 #ifdef DBG
     bDebugPrint = 1;
     virtioDebugLevel = 0;//0xff;
-    nDebugLevel = TRACE_LEVEL_ERROR;
+    nDebugLevel = TRACE_LEVEL_VERBOSE;
     VirtioDebugPrintProc = DebugPrintFuncSerial;
 #endif
 }
@@ -41,6 +42,9 @@ DriverEntry(
     InitializeDebugPrints(pDriverObject, pRegistryPath);
     DbgPrint(TRACE_LEVEL_FATAL, ("---> KMDOD build on on %s %s\n", __DATE__, __TIME__));
 
+//#define DOD_DRIVER
+
+#ifdef DOD_DRIVER
     // Initialize DDI function pointers and dxgkrnl
     KMDDOD_INITIALIZATION_DATA InitialData = {0};
 
@@ -77,6 +81,103 @@ DriverEntry(
     InitialData.DxgkDdiSystemDisplayWrite           = VioGpuDodSystemDisplayWrite;
 
     NTSTATUS Status = DxgkInitializeDisplayOnlyDriver(pDriverObject, pRegistryPath, &InitialData);
+
+#else
+
+	DRIVER_INITIALIZATION_DATA InitialData = { 0 };
+	InitialData.Version = DXGKDDI_INTERFACE_VERSION;
+
+    InitialData.DxgkDdiAddDevice                    = VioGpuDodAddDevice;
+    InitialData.DxgkDdiStartDevice                  = VioGpuDodStartDevice;
+    InitialData.DxgkDdiStopDevice                   = VioGpuDodStopDevice;
+    InitialData.DxgkDdiResetDevice                  = VioGpuDodResetDevice;
+    InitialData.DxgkDdiRemoveDevice                 = VioGpuDodRemoveDevice;
+    InitialData.DxgkDdiDispatchIoRequest            = VioGpuDodDispatchIoRequest;
+    InitialData.DxgkDdiInterruptRoutine             = VioGpuDodInterruptRoutine;
+    InitialData.DxgkDdiDpcRoutine                   = VioGpuDodDpcRoutine;
+    InitialData.DxgkDdiQueryChildRelations          = VioGpuDodQueryChildRelations;
+    InitialData.DxgkDdiQueryChildStatus             = VioGpuDodQueryChildStatus;
+    InitialData.DxgkDdiQueryDeviceDescriptor        = VioGpuDodQueryDeviceDescriptor;
+    InitialData.DxgkDdiSetPowerState                = VioGpuDodSetPowerState;
+    InitialData.DxgkDdiUnload                       = VioGpuDodUnload;
+    InitialData.DxgkDdiQueryInterface               = VioGpuDodQueryInterface;
+    InitialData.DxgkDdiQueryAdapterInfo             = VioGpuDodQueryAdapterInfo;
+    InitialData.DxgkDdiSetPointerPosition           = VioGpuDodSetPointerPosition;
+    InitialData.DxgkDdiSetPointerShape              = VioGpuDodSetPointerShape;
+    InitialData.DxgkDdiIsSupportedVidPn             = VioGpuDodIsSupportedVidPn;
+    InitialData.DxgkDdiRecommendFunctionalVidPn     = VioGpuDodRecommendFunctionalVidPn;
+    InitialData.DxgkDdiEnumVidPnCofuncModality      = VioGpuDodEnumVidPnCofuncModality;
+    InitialData.DxgkDdiSetVidPnSourceVisibility     = VioGpuDodSetVidPnSourceVisibility;
+    InitialData.DxgkDdiCommitVidPn                  = VioGpuDodCommitVidPn;
+    InitialData.DxgkDdiUpdateActiveVidPnPresentPath = VioGpuDodUpdateActiveVidPnPresentPath;
+    InitialData.DxgkDdiRecommendMonitorModes        = VioGpuDodRecommendMonitorModes;
+    InitialData.DxgkDdiQueryVidPnHWCapability       = VioGpuDodQueryVidPnHWCapability;
+    //InitialData.DxgkDdiPresentDisplayOnly           = VioGpuDodPresentDisplayOnly;
+    InitialData.DxgkDdiStopDeviceAndReleasePostDisplayOwnership = VioGpuDodStopDeviceAndReleasePostDisplayOwnership;
+    InitialData.DxgkDdiSystemDisplayEnable          = VioGpuDodSystemDisplayEnable;
+    InitialData.DxgkDdiSystemDisplayWrite           = VioGpuDodSystemDisplayWrite;
+
+	InitialData.DxgkDdiNotifyAcpiEvent = VioGpu3dDdiNotifyAcpiEvent;
+
+	// 3D PART
+	InitialData.DxgkDdiControlEtwLogging = VioGpu3dDdiControlEtwLogging;
+	InitialData.DxgkDdiCreateDevice = VioGpu3dDdiCreateDevice;
+	InitialData.DxgkDdiCreateAllocation = VioGpu3dDdiCreateAllocation;
+	InitialData.DxgkDdiDestroyAllocation = VioGpu3dDdiDestroyAllocation;
+	InitialData.DxgkDdiDescribeAllocation = VioGpu3dDdiDescribeAllocation;
+	InitialData.DxgkDdiGetStandardAllocationDriverData = VioGpu3dDdiGetStandardAllocationDriverData;
+	InitialData.DxgkDdiAcquireSwizzlingRange = VioGpu3dDdiAcquireSwizzlingRange;
+	InitialData.DxgkDdiReleaseSwizzlingRange = VioGpu3dDdiReleaseSwizzlingRange;
+	InitialData.DxgkDdiPatch = VioGpu3dDdiPatch;
+	InitialData.DxgkDdiSubmitCommand = VioGpu3dDdiSubmitCommand;
+	InitialData.DxgkDdiPreemptCommand = VioGpu3dDdiPreemptCommand;
+	InitialData.DxgkDdiBuildPagingBuffer = VioGpu3dDdiBuildPagingBuffer;
+	InitialData.DxgkDdiSetPalette = VioGpu3dDdiSetPalette;
+	InitialData.DxgkDdiResetFromTimeout = VioGpu3dDdiResetFromTimeout;
+	InitialData.DxgkDdiRestartFromTimeout = VioGpu3dDdiRestartFromTimeout;
+	InitialData.DxgkDdiEscape = VioGpu3dDdiEscape;
+	InitialData.DxgkDdiCollectDbgInfo = VioGpu3dDdiCollectDbgInfo;
+	InitialData.DxgkDdiQueryCurrentFence = VioGpu3dDdiQueryCurrentFence;
+	InitialData.DxgkDdiRecommendVidPnTopology = VioGpu3dDdiRecommendVidPnTopology;
+	InitialData.DxgkDdiGetScanLine = VioGpu3dDdiGetScanLine;
+	InitialData.DxgkDdiStopCapture = VioGpu3dDdiStopCapture;
+	InitialData.DxgkDdiSetVidPnSourceAddress = VioGpu3dDdiSetVidPnSourceAddress;
+	InitialData.DxgkDdiControlInterrupt = VioGpu3dDdiControlInterrupt;
+	InitialData.DxgkDdiCreateOverlay = VioGpu3dDdiCreateOverlay;
+	InitialData.DxgkDdiDestroyDevice = VioGpu3dDdiDestroyDevice;
+	InitialData.DxgkDdiOpenAllocation = VioGpu3dDdiOpenAllocation;
+	InitialData.DxgkDdiCloseAllocation = VioGpu3dDdiCloseAllocation;
+	InitialData.DxgkDdiRender = VioGpu3dDdiRender;
+	InitialData.DxgkDdiPresent = VioGpu3dDdiPresent;
+	InitialData.DxgkDdiUpdateOverlay = VioGpu3dDdiUpdateOverlay;
+	InitialData.DxgkDdiFlipOverlay = VioGpu3dDdiFlipOverlay;
+	InitialData.DxgkDdiDestroyOverlay = VioGpu3dDdiDestroyOverlay;
+	InitialData.DxgkDdiCreateContext = VioGpu3dDdiCreateContext;
+	InitialData.DxgkDdiDestroyContext = VioGpu3dDdiDestroyContext;
+
+	InitialData.DxgkDdiLinkDevice = NULL;
+	//initData.DxgkDdiLinkDevice = VioGpu3dDdiLinkDevice;
+
+	InitialData.DxgkDdiSetDisplayPrivateDriverFormat = VioGpu3dDdiSetDisplayPrivateDriverFormat;
+	InitialData.DxgkDdiRenderKm = VioGpu3dDdiRenderKm;
+	InitialData.DxgkDdiSetPowerComponentFState = VioGpu3dDdiSetPowerComponentFState;
+	InitialData.DxgkDdiQueryDependentEngineGroup = VioGpu3dDdiQueryDependentEngineGroup;
+	InitialData.DxgkDdiQueryEngineStatus = VioGpu3dDdiQueryEngineStatus;
+	InitialData.DxgkDdiResetEngine = VioGpu3dDdiResetEngine;
+	InitialData.DxgkDdiCancelCommand = VioGpu3dDdiCancelCommand;
+	InitialData.DxgkDdiGetChildContainerId = VioGpu3dDdiGetChildContainerId;
+	InitialData.DxgkDdiPowerRuntimeControlRequest = VioGpu3dDdiPowerRuntimeControlRequest;
+	InitialData.DxgkDdiSetVidPnSourceAddressWithMultiPlaneOverlay = VioGpu3dDdiSetVidPnSourceAddressWithMultiPlaneOverlay;
+	InitialData.DxgkDdiNotifySurpriseRemoval = VioGpu3dDdiNotifySurpriseRemoval;
+	InitialData.DxgkDdiGetNodeMetadata = VioGpu3dDdiGetNodeMetadata;
+	InitialData.DxgkDdiControlInterrupt2 = VioGpu3dDdiControlInterrupt2;
+	InitialData.DxgkDdiCheckMultiPlaneOverlaySupport = VioGpu3dDdiCheckMultiPlaneOverlaySupport;
+	InitialData.DxgkDdiCalibrateGpuClock = VioGpu3dDdiCalibrateGpuClock;
+	InitialData.DxgkDdiFormatHistoryBuffer = VioGpu3dDdiFormatHistoryBuffer;
+
+	NTSTATUS Status = DxgkInitialize(pDriverObject, pRegistryPath, &InitialData);
+#endif
+
     if (!NT_SUCCESS(Status))
     {
         DbgPrint(TRACE_LEVEL_ERROR, ("DxgkInitializeDisplayOnlyDriver failed with Status: 0x%X\n", Status));
