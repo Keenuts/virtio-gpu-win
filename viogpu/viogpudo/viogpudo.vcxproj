@@ -215,9 +215,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <OutDir>objchk_win10_x86\amd64\</OutDir>
-    <IntDir>objchk_win10_x86\amd64\</IntDir>
+    <OutDir>objfre_win10_$(InfArch)\$(InfArch)\</OutDir>
+    <IntDir>objfre_win10_$(InfArch)\$(InfArch)\</IntDir>
     <LibraryPath>..\..\VirtIO\objchk_win10_amd64\amd64;$(LibraryPath)</LibraryPath>
+    <DiagnosticMode>true</DiagnosticMode>
+    <TimeStampServer />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -387,7 +389,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(DDK_LIB_PATH)\displib.lib;virtiolib.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>        packOne.bat $(TargetOS) $(TargetArch) viogpudo</Command>
+      <Command>packOne.bat win10 $(PlatformTarget) viogpudo</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|x64'">
@@ -423,6 +425,7 @@
     <ClInclude Include="..\common\baseobj.h" />
     <ClInclude Include="..\common\bitops.h" />
     <ClInclude Include="..\common\helper.h" />
+    <ClInclude Include="api_fwd.h" />
     <ClInclude Include="driver.h" />
     <ClInclude Include="driver_3d.h" />
     <ClInclude Include="viogpudo.h" />
@@ -432,6 +435,7 @@
     <ClCompile Include="..\common\viogpu_idr.cpp" />
     <ClCompile Include="..\common\viogpu_pci.cpp" />
     <ClCompile Include="..\common\viogpu_queue.cpp" />
+    <ClCompile Include="api_fwd.cpp" />
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="driver_3d.cpp" />
     <ClCompile Include="viogpudo.cpp" />

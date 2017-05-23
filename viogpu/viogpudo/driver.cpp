@@ -20,7 +20,7 @@ void InitializeDebugPrints(IN PDRIVER_OBJECT  DriverObject, IN PUNICODE_STRING R
     UNREFERENCED_PARAMETER(RegistryPath);
     bDebugPrint = 0;
     virtioDebugLevel = 0;
-    nDebugLevel = TRACE_LEVEL_NONE;
+    nDebugLevel = TRACE_LEVEL_VERBOSE;
 
 #ifdef DBG
     bDebugPrint = 1;

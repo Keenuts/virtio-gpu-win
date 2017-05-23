@@ -31,7 +31,7 @@
     <SignMode>TestSign</SignMode>
     <RemoveDriver>True</RemoveDriver>
     <InstallMode>InstallAndVerify</InstallMode>
-    <HardwareIdString />
+    <HardwareIdString>PCI\VEN_1AF4&amp;DEV_1050&amp;SUBSYS_11001AF4&amp;REV_01</HardwareIdString>
     <CommandLine />
     <ScriptPath>C:\Program Files (x86)\Windows Kits\10\Testing\Tests\Utilities\DefaultDriverPackageInstallationTask.dll</ScriptPath>
     <DbgengRemoteMachineName>Network Debugging</DbgengRemoteMachineName>
@@ -40,6 +40,12 @@
     <ScriptName>Microsoft.DriverKit.DefaultDriverPackageInstallationClass.PerformDefaultDriverPackageInstallation</ScriptName>
     <ScriptDeviceQuery />
     <DebuggerFlavor>DbgengRemoteDebugger</DebuggerFlavor>
+    <TestCertificate>CN="WDKTestCert Nathan,131400150088957530" | 0DD5506E1D4B39F2521500704D52706A1BAB3C0E</TestCertificate>
+    <EnableVerifier>False</EnableVerifier>
+    <AllDrivers>False</AllDrivers>
+    <VerifyProjectOutput>True</VerifyProjectOutput>
+    <VerifyDrivers />
+    <VerifyFlags>133563</VerifyFlags>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Release|x64'">
     <SignMode>Off</SignMode>

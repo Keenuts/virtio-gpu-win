@@ -6,7 +6,8 @@
 
 VioGpuDod::VioGpuDod(_In_ DEVICE_OBJECT* pPhysicalDeviceObject) : m_pPhysicalDevice(pPhysicalDeviceObject),
                                                             m_MonitorPowerState(PowerDeviceD0),
-                                                            m_AdapterPowerState(PowerDeviceD0)
+                                                            m_AdapterPowerState(PowerDeviceD0),
+															m_entries(NULL)
 {
     PAGED_CODE();
 
@@ -17,6 +18,7 @@ VioGpuDod::VioGpuDod(_In_ DEVICE_OBJECT* pPhysicalDeviceObject) : m_pPhysicalDev
     RtlZeroMemory(m_CurrentModes, sizeof(m_CurrentModes));
     RtlZeroMemory(&m_PointerShape, sizeof(m_PointerShape));
     m_pHWDevice = NULL;
+	api_fwd::initialize_entries(&m_entries);
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
 }
 
@@ -1759,6 +1761,13 @@ VOID VioGpuDod::SystemDisplayWrite(_In_reads_bytes_(SourceHeight * SourceStride)
 }
 
 #pragma code_seg(pop) // End Non-Paged Code
+
+NTSTATUS VioGpuDod::Escape(VOID* data)
+{
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> %s\n", __FUNCTION__));
+	UINT32 hash = *(UINT32*)data;
+	return api_fwd::call_entry(m_entries, hash, data);
+}
 
 NTSTATUS VioGpuDod::WriteHWInfoStr(_In_ HANDLE DevInstRegKeyHandle, _In_ PCWSTR pszwValueName, _In_ PCSTR pszValue)
 {

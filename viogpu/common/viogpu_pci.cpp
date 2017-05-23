@@ -152,7 +152,7 @@ static int PCIReadConfig(
     PDXGKRNL_INTERFACE pDxgkInterface = pVioGpu->GetDxgkInterface();
     ULONG BytesRead;
 
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--> %s\n", __FUNCTION__));
     Status = pDxgkInterface->DxgkCbReadDeviceSpace(pDxgkInterface->DeviceHandle,
                                                    DXGK_WHICHSPACE_CONFIG,
                                                    buffer,

@@ -1,4 +1,3 @@
-@echo off
 : Param1 - Win10 | Win8
 setlocal
 : Param2 - x86|x64
@@ -38,11 +37,21 @@ set PDB_PATH_AND_NAME=objfre_%INST_OS%_%INST_ARC%\%INST_EXT%\%SYS_NAME%.pdb
 set INF_PATH_AND_NAME=objfre_%INST_OS%_%INST_ARC%\%INST_EXT%\%SYS_NAME%.inf
 set DVL_PATH_AND_NAME=%SYS_NAME%.DVL.xml
 
+echo %SYS_PATH_AND_NAME%
+echo %PDB_PATH_AND_NAME%
+echo %INF_PATH_AND_NAME%
+echo %DVL_PATH_AND_NAME%
+
 rem echo makeinstall %1 %2 %3
+echo 1
 mkdir ..\Install\%INST_OS%\%INST_ARC%
+echo 2
 del /Q ..\Install\%INST_OS%\%INST_ARC%\%FILE_NAME%.*
+echo 3
 copy /Y %SYS_PATH_AND_NAME% ..\Install\%INST_OS%\%INST_ARC%
+echo 4
 copy /Y %PDB_PATH_AND_NAME% ..\Install\%INST_OS%\%INST_ARC%
+echo 5
 copy /Y %INF_PATH_AND_NAME% ..\Install\%INST_OS%\%INST_ARC%\%SYS_NAME%.inf
 
 :create_cat

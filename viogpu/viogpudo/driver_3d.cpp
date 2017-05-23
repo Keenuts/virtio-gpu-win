@@ -1,4 +1,5 @@
 #include "helper.h"
+#include "viogpudo.h"
 #include "driver_3d.h"
 
 NTSTATUS APIENTRY VioGpu3dDdiAcquireSwizzlingRange(
@@ -218,7 +219,11 @@ NTSTATUS APIENTRY VioGpu3dDdiEscape(
     DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
     UNREFERENCED_PARAMETER(hAdapter);
     UNREFERENCED_PARAMETER(pEscape);
-	return STATUS_SUCCESS;
+
+    VioGpuDod* pVioGpuDod = reinterpret_cast<VioGpuDod*>(hAdapter);
+    NTSTATUS res = pVioGpuDod->Escape(pEscape->pPrivateDriverData);
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+	return res;
 }
 
 

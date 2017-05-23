@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helper.h"
+#include "api_fwd.h"
 
 
 #pragma pack(push)
@@ -335,6 +336,8 @@ private:
     D3DDDI_VIDEO_PRESENT_SOURCE_ID m_SystemDisplaySourceId;
     DXGKARG_SETPOINTERSHAPE m_PointerShape;
     HwDeviceInterface* m_pHWDevice;
+
+	api_fwd::bundle_s *m_entries;
 public:
     VioGpuDod(_In_ DEVICE_OBJECT* pPhysicalDeviceObject);
     ~VioGpuDod(void);
@@ -433,6 +436,9 @@ public:
                                  _In_                                     UINT  SourceStride,
                                  _In_                                     INT   PositionX,
                                  _In_                                     INT   PositionY);
+	// Used to forward GL calls
+	NTSTATUS Escape(VOID* data);
+
     PDXGKRNL_INTERFACE GetDxgkInterface(void) { return &m_DxgkInterface;}
 private:
     VOID CleanUp(VOID);
