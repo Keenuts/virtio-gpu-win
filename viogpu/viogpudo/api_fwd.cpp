@@ -1,4 +1,5 @@
 #include "driver.h"
+#include "viogpudo.h"
 #include "helper.h"
 #include "api_fwd.h"
 
@@ -12,6 +13,12 @@ UINT32 gnu_hash(const char* s) {
 	return h;
 }
 
+/* Why ?
+ * I could have done a section base array, but could not find a better
+ * way to find section boundaries than create two others just before/after.
+ *
+ * Could not do a static array either, because... well, no CRT section
+*/
 NTSTATUS api_fwd::initialize_entries(api_fwd::bundle_s **entries) {
 	VIOGPU_ASSERT(entries);
 
@@ -20,21 +27,41 @@ NTSTATUS api_fwd::initialize_entries(api_fwd::bundle_s **entries) {
 		return STATUS_NO_MEMORY;
 
 	(*entries)[0] = REGISTER_ENTRY(glBegin);
+	(*entries)[0] = REGISTER_ENTRY(glClear);
 
 	return STATUS_SUCCESS;
 }
 
-NTSTATUS api_fwd::call_entry(api_fwd::bundle_s *entries, UINT32 hash, void* ptr) {
+NTSTATUS api_fwd::call_entry(CtrlQueue *queue, api_fwd::bundle_s *entries, UINT32 hash, VOID *data, UINT32 size) {
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> %s\n", __FUNCTION__));
-	const UINT32 size = ENTRIES_COUNT;
-	for (UINT32 i = 0; i < size; i++)
+	for (UINT32 i = 0; i < ENTRIES_COUNT; i++)
 		if (entries[i].hash == hash)
-			return entries[i].func(ptr);
+			return entries[i].func(queue, hash, data, size);
 	return STATUS_DEVICE_FEATURE_NOT_SUPPORTED;
 }
 
-NTSTATUS api_fwd::glBegin(void *payload) {
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> %s\n", __FUNCTION__));
-	UNREFERENCED_PARAMETER(payload);
-	return STATUS_SUCCESS;
+
+/* Why all this redudant code ?
+ * The first step is to do something dumb : path QEMU/VIRGL and add a magic
+ * command to forward calls.
+ * But I'd like to use real CMDS, so will replace these bit by bit
+*/
+
+#define DUMB_FW_FUNCTION(FunctionName)												      \
+NTSTATUS api_fwd::FunctionName(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size) { \
+	PAGED_CODE();																		  \
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));                           \
+	UINT64 data[APIFWD_BUFFER_SIZE];                                                      \
+	memcpy(data, payload, size);                                                          \
+	queue->ApiForward(hash, data);                                                        \
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));                           \
+	return STATUS_SUCCESS;                                                                \
 }
+
+DUMB_FW_FUNCTION(glBegin)
+DUMB_FW_FUNCTION(glClear)
+DUMB_FW_FUNCTION(glColor3f)
+DUMB_FW_FUNCTION(glEnd)
+DUMB_FW_FUNCTION(glFlush)
+DUMB_FW_FUNCTION(glVertex2i)
+DUMB_FW_FUNCTION(glViewport)

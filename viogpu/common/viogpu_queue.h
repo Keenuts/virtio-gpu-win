@@ -149,6 +149,7 @@ public:
 //    void ContextDestroy(UINT id);
 //    void AttachResource(UINT cid, UINT rid);
 //    void DetachResource(UINT cid, UINT rid);
+	void ApiForward(UINT hash, UINT64 data[APIFWD_BUFFER_SIZE]);
 };
 
 class CrsrQueue : public VioGpuQueue

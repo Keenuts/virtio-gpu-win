@@ -227,7 +227,14 @@ VioGpuDodAddDevice(
         return STATUS_NO_MEMORY;
     }
 
-    *ppDeviceContext = pVioGpuDod;
+	GpuDevice *gpu = new(NonPagedPoolNx) GpuDevice(pVioGpuDod);
+    if (gpu == NULL)
+    {
+        DbgPrint(TRACE_LEVEL_ERROR, ("GpuDevice failed to be allocated"));
+        return STATUS_NO_MEMORY;
+    }
+
+    *ppDeviceContext = gpu;
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s ppDeviceContext = %p\n", __FUNCTION__, pVioGpuDod));
     return STATUS_SUCCESS;

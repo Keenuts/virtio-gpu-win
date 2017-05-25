@@ -793,3 +793,22 @@ PGPU_VBUFFER CrsrQueue::DequeueCursor(_Out_ UINT* len)
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s buf %p len = %u\n", __FUNCTION__, buf, len));
     return buf;
 }
+
+void CtrlQueue::ApiForward(UINT hash, UINT64 data[APIFWD_BUFFER_SIZE])
+{
+    PAGED_CODE();
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    PGPU_APIFWD cmd;
+    PGPU_VBUFFER vbuf;
+    cmd = (PGPU_APIFWD)AllocCmd(&vbuf, sizeof(*cmd));
+    RtlZeroMemory(cmd, sizeof(*cmd));
+
+    cmd->hdr.type = VIRTIO_GPU_CMD_API_FORWARDING;
+	cmd->function = hash;
+	memcpy(cmd->data, data, sizeof(UINT64) * APIFWD_BUFFER_SIZE);
+
+    QueueBuffer(vbuf);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+}

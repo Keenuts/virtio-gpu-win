@@ -6,7 +6,7 @@
 
 namespace api_fwd
 {
-	typedef NTSTATUS(*entry)(void*);
+	typedef NTSTATUS(*entry)(CtrlQueue*, UINT32, VOID*, UINT32);
 
 	struct bundle_s {
 		UINT32 hash;
@@ -14,6 +14,16 @@ namespace api_fwd
 	};
 
 	NTSTATUS initialize_entries(bundle_s **entries);
-	NTSTATUS call_entry(bundle_s *entries, UINT32 hash, void* ptr);
-	NTSTATUS glBegin(void *payload);
+	NTSTATUS call_entry(CtrlQueue  *queue, bundle_s *entries, UINT32 hash, VOID* data, UINT32 size);
+
+#define DUMB_FWD_PROT(Name) \
+	NTSTATUS Name(CtrlQueue *queue, UINT32 hash, VOID *data, UINT32 size);
+
+	DUMB_FWD_PROT(glBegin)
+	DUMB_FWD_PROT(glClear)
+	DUMB_FWD_PROT(glColor3f)
+	DUMB_FWD_PROT(glEnd)
+	DUMB_FWD_PROT(glFlush)
+	DUMB_FWD_PROT(glVertex2i)
+	DUMB_FWD_PROT(glViewport)
 };

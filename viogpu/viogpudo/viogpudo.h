@@ -278,6 +278,7 @@ public:
     CPciResources* GetPciResources(void) { return &m_PciResources; }
     NTSTATUS AcquireFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) { UNREFERENCED_PARAMETER(pCurrentBddMode);  return STATUS_SUCCESS; }
     NTSTATUS ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) { UNREFERENCED_PARAMETER(pCurrentBddMode);  return STATUS_SUCCESS; }
+	NTSTATUS Escape(VOID* data, UINT32 size);
 
 protected:
 private:
@@ -319,6 +320,7 @@ private:
     KEVENT m_ConfigUpdateEvent;
     PETHREAD m_pWorkThread;
     BOOLEAN m_bStopWorkThread;
+	api_fwd::bundle_s *m_entries;
 };
 
 class VioGpuDod {
@@ -336,8 +338,6 @@ private:
     D3DDDI_VIDEO_PRESENT_SOURCE_ID m_SystemDisplaySourceId;
     DXGKARG_SETPOINTERSHAPE m_PointerShape;
     HwDeviceInterface* m_pHWDevice;
-
-	api_fwd::bundle_s *m_entries;
 public:
     VioGpuDod(_In_ DEVICE_OBJECT* pPhysicalDeviceObject);
     ~VioGpuDod(void);
@@ -436,8 +436,6 @@ public:
                                  _In_                                     UINT  SourceStride,
                                  _In_                                     INT   PositionX,
                                  _In_                                     INT   PositionY);
-	// Used to forward GL calls
-	NTSTATUS Escape(VOID* data);
 
     PDXGKRNL_INTERFACE GetDxgkInterface(void) { return &m_DxgkInterface;}
 private:

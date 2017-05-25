@@ -220,8 +220,8 @@ NTSTATUS APIENTRY VioGpu3dDdiEscape(
     UNREFERENCED_PARAMETER(hAdapter);
     UNREFERENCED_PARAMETER(pEscape);
 
-    VioGpuDod* pVioGpuDod = reinterpret_cast<VioGpuDod*>(hAdapter);
-    NTSTATUS res = pVioGpuDod->Escape(pEscape->pPrivateDriverData);
+    GpuDevice* pVioGpuDod = reinterpret_cast<GpuDevice*>(hAdapter);
+    NTSTATUS res = pVioGpuDod->Escape(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
 	return res;
 }
