@@ -26,4 +26,8 @@ namespace api_fwd
 	DUMB_FWD_PROT(glFlush)
 	DUMB_FWD_PROT(glVertex2i)
 	DUMB_FWD_PROT(glViewport)
+
+	NTSTATUS wglCreateContext(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size);
+	NTSTATUS wglDeleteContext(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size);
+	NTSTATUS wglMakeCurrent(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size);
 };

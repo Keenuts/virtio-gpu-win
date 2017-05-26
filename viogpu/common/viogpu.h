@@ -226,6 +226,23 @@ typedef struct virtio_gpu_api_fowarding {
 }GPU_APIFWD, *PGPU_APIFWD;
 #pragma pack()
 
+/* VIRTIO_GPU_CMD_CTX_CREATE */
+#pragma pack(1)
+typedef struct virtio_gpu_ctx_create {
+    GPU_CTRL_HDR hdr;
+	UINT32 nlen;
+    UINT32 padding;
+	char debug_name[64];
+}GPU_CTX_CREATE, *PGPU_CTX_CREATE;
+#pragma pack()
+
+/* VIRTIO_GPU_CMD_CTX_DESTROY */
+#pragma pack(1)
+typedef struct virtio_gpu_ctx_destroy {
+    GPU_CTRL_HDR hdr;
+}GPU_CTX_DESTROY, *PGPU_CTX_DESTROY;
+#pragma pack()
+
 #define ISR_REASON_DISPLAY 1
 #define ISR_REASON_CURSOR  2
 #define ISR_REASON_CHANGE  4

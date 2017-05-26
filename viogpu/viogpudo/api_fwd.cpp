@@ -3,7 +3,7 @@
 #include "helper.h"
 #include "api_fwd.h"
 
-#define ENTRIES_COUNT 1
+#define ENTRIES_COUNT 10
 
 // From Oracle blog GNU HASH for elf symbols
 UINT32 gnu_hash(const char* s) {
@@ -27,7 +27,15 @@ NTSTATUS api_fwd::initialize_entries(api_fwd::bundle_s **entries) {
 		return STATUS_NO_MEMORY;
 
 	(*entries)[0] = REGISTER_ENTRY(glBegin);
-	(*entries)[0] = REGISTER_ENTRY(glClear);
+	(*entries)[1] = REGISTER_ENTRY(glClear);
+	(*entries)[2] = REGISTER_ENTRY(glColor3f);
+	(*entries)[3] = REGISTER_ENTRY(glEnd);
+	(*entries)[4] = REGISTER_ENTRY(glFlush);
+	(*entries)[5] = REGISTER_ENTRY(glVertex2i);
+	(*entries)[6] = REGISTER_ENTRY(glViewport);
+	(*entries)[7] = REGISTER_ENTRY(wglCreateContext);
+	(*entries)[8] = REGISTER_ENTRY(wglMakeCurrent);
+	(*entries)[9] = REGISTER_ENTRY(wglDeleteContext);
 
 	return STATUS_SUCCESS;
 }
@@ -65,3 +73,42 @@ DUMB_FW_FUNCTION(glEnd)
 DUMB_FW_FUNCTION(glFlush)
 DUMB_FW_FUNCTION(glVertex2i)
 DUMB_FW_FUNCTION(glViewport)
+
+NTSTATUS api_fwd::wglCreateContext(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size)
+{
+	PAGED_CODE();
+	DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+	UNREFERENCED_PARAMETER(hash);
+
+	UINT64 data[APIFWD_BUFFER_SIZE];
+	memcpy(data, payload, size);
+	queue->CreateContext(data);
+	DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+	return STATUS_SUCCESS;
+}
+
+NTSTATUS api_fwd::wglDeleteContext(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size)
+{
+	PAGED_CODE();
+	DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+	UNREFERENCED_PARAMETER(hash);
+
+	UINT64 data[APIFWD_BUFFER_SIZE];
+	memcpy(data, payload, size);
+	queue->DeleteContext(data);
+	DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+	return STATUS_SUCCESS;
+}
+
+NTSTATUS api_fwd::wglMakeCurrent(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size)
+{
+	PAGED_CODE();
+	DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+	UNREFERENCED_PARAMETER(hash);
+
+	UINT64 data[APIFWD_BUFFER_SIZE];
+	memcpy(data, payload, size);
+	queue->MakeCurrent(data);
+	DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+	return STATUS_SUCCESS;
+}

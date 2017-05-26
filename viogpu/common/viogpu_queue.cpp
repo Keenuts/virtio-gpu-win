@@ -812,3 +812,45 @@ void CtrlQueue::ApiForward(UINT hash, UINT64 data[APIFWD_BUFFER_SIZE])
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
 }
+
+void CtrlQueue::CreateContext(UINT64 data[APIFWD_BUFFER_SIZE]) {
+    PAGED_CODE();
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    PGPU_CTX_CREATE cmd;
+    PGPU_VBUFFER vbuf;
+    cmd = (PGPU_CTX_CREATE)AllocCmd(&vbuf, sizeof(*cmd));
+    RtlZeroMemory(cmd, sizeof(*cmd));
+
+    cmd->hdr.type = VIRTIO_GPU_CMD_CTX_CREATE;
+	//FIXME
+	UNREFERENCED_PARAMETER(data);
+	cmd->nlen = 512;
+	cmd->padding = 0;
+
+	char debug_name[] = "simple_context";
+	memcpy(cmd->debug_name, debug_name, sizeof(debug_name));
+
+    QueueBuffer(vbuf);
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+}
+
+void CtrlQueue::MakeCurrent(UINT64 data[APIFWD_BUFFER_SIZE]) {
+	UNREFERENCED_PARAMETER(data);
+}
+
+void CtrlQueue::DeleteContext(UINT64 data[APIFWD_BUFFER_SIZE]) {
+    PAGED_CODE();
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+	UNREFERENCED_PARAMETER(data);
+
+    PGPU_CTX_DESTROY cmd;
+    PGPU_VBUFFER vbuf;
+    cmd = (PGPU_CTX_DESTROY)AllocCmd(&vbuf, sizeof(*cmd));
+    RtlZeroMemory(cmd, sizeof(*cmd));
+
+    cmd->hdr.type = VIRTIO_GPU_CMD_CTX_DESTROY;
+
+    QueueBuffer(vbuf);
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+}
