@@ -2,7 +2,6 @@
 
 #include "helper.h"
 
-#define REGISTER_ENTRY( function ) { gnu_hash( #function ), api_fwd::function };
 
 namespace api_fwd
 {

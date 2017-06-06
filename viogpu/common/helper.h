@@ -83,8 +83,9 @@ void DebugPrintFuncSerial(const char *format, ...);
 
 void DebugPrintFunc(const char *format, ...);
 
-#define DbgPrint(level, line) \
-	DbgPrint line;					\
+//FIXME : Patchocrado
+#define DbgPrint(level, line)   \
+	DbgPrint line;				\
     if (level > nDebugLevel) {} \
     else VirtioDebugPrintProc line
 #else

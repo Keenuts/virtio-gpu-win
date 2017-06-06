@@ -19,10 +19,12 @@ UINT32 gnu_hash(const char* s) {
  *
  * Could not do a static array either, because... well, no CRT section
 */
+#define REGISTER_ENTRY( function ) { gnu_hash( #function ), api_fwd::function };
+
 NTSTATUS api_fwd::initialize_entries(api_fwd::bundle_s **entries) {
 	VIOGPU_ASSERT(entries);
 
-	entries = static_cast<api_fwd::bundle_s**>(ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(api_fwd::bundle_s) * ENTRIES_COUNT, 'AFWD'));
+	*entries = static_cast<api_fwd::bundle_s*>(ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(api_fwd::bundle_s) * ENTRIES_COUNT, 'AFWD'));
 	if (!entries)
 		return STATUS_NO_MEMORY;
 
@@ -58,11 +60,11 @@ NTSTATUS api_fwd::call_entry(CtrlQueue *queue, api_fwd::bundle_s *entries, UINT3
 #define DUMB_FW_FUNCTION(FunctionName)												      \
 NTSTATUS api_fwd::FunctionName(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size) { \
 	PAGED_CODE();																		  \
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));                           \
+    DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));                           \
 	UINT64 data[APIFWD_BUFFER_SIZE];                                                      \
 	memcpy(data, payload, size);                                                          \
 	queue->ApiForward(hash, data);                                                        \
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));                           \
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));                           \
 	return STATUS_SUCCESS;                                                                \
 }
 
@@ -77,38 +79,38 @@ DUMB_FW_FUNCTION(glViewport)
 NTSTATUS api_fwd::wglCreateContext(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size)
 {
 	PAGED_CODE();
-	DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+	DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));
 	UNREFERENCED_PARAMETER(hash);
 
 	UINT64 data[APIFWD_BUFFER_SIZE];
 	memcpy(data, payload, size);
 	queue->CreateContext(data);
-	DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+	DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
 	return STATUS_SUCCESS;
 }
 
 NTSTATUS api_fwd::wglDeleteContext(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size)
 {
 	PAGED_CODE();
-	DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+	DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));
 	UNREFERENCED_PARAMETER(hash);
 
 	UINT64 data[APIFWD_BUFFER_SIZE];
 	memcpy(data, payload, size);
 	queue->DeleteContext(data);
-	DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+	DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
 	return STATUS_SUCCESS;
 }
 
 NTSTATUS api_fwd::wglMakeCurrent(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size)
 {
 	PAGED_CODE();
-	DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+	DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));
 	UNREFERENCED_PARAMETER(hash);
 
 	UINT64 data[APIFWD_BUFFER_SIZE];
 	memcpy(data, payload, size);
 	queue->MakeCurrent(data);
-	DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+	DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
 	return STATUS_SUCCESS;
 }

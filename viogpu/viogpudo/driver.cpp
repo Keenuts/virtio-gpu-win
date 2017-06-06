@@ -20,12 +20,12 @@ void InitializeDebugPrints(IN PDRIVER_OBJECT  DriverObject, IN PUNICODE_STRING R
     UNREFERENCED_PARAMETER(RegistryPath);
     bDebugPrint = 0;
     virtioDebugLevel = 0;
-    nDebugLevel = TRACE_LEVEL_VERBOSE;
+    nDebugLevel = TRACE_LEVEL_ERROR;
 
 #ifdef DBG
     bDebugPrint = 1;
     virtioDebugLevel = 0;//0xff;
-    nDebugLevel = TRACE_LEVEL_VERBOSE;
+    nDebugLevel = TRACE_LEVEL_ERROR;
     VirtioDebugPrintProc = DebugPrintFuncSerial;
 #endif
 }
@@ -42,7 +42,7 @@ DriverEntry(
     InitializeDebugPrints(pDriverObject, pRegistryPath);
     DbgPrint(TRACE_LEVEL_FATAL, ("---> KMDOD build on on %s %s\n", __DATE__, __TIME__));
 
-//#define DOD_DRIVER
+#define DOD_DRIVER
 
 #ifdef DOD_DRIVER
     // Initialize DDI function pointers and dxgkrnl
@@ -79,6 +79,7 @@ DriverEntry(
     InitialData.DxgkDdiStopDeviceAndReleasePostDisplayOwnership = VioGpuDodStopDeviceAndReleasePostDisplayOwnership;
     InitialData.DxgkDdiSystemDisplayEnable          = VioGpuDodSystemDisplayEnable;
     InitialData.DxgkDdiSystemDisplayWrite           = VioGpuDodSystemDisplayWrite;
+    InitialData.DxgkDdiEscape = VioGpuDodEscape;
 
     NTSTATUS Status = DxgkInitializeDisplayOnlyDriver(pDriverObject, pRegistryPath, &InitialData);
 
@@ -227,15 +228,7 @@ VioGpuDodAddDevice(
         return STATUS_NO_MEMORY;
     }
 
-	GpuDevice *gpu = new(NonPagedPoolNx) GpuDevice(pVioGpuDod);
-    if (gpu == NULL)
-    {
-        DbgPrint(TRACE_LEVEL_ERROR, ("GpuDevice failed to be allocated"));
-        return STATUS_NO_MEMORY;
-    }
-
-    *ppDeviceContext = gpu;
-
+    *ppDeviceContext = pVioGpuDod;
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s ppDeviceContext = %p\n", __FUNCTION__, pVioGpuDod));
     return STATUS_SUCCESS;
 }
@@ -386,7 +379,7 @@ VioGpuDodQueryAdapterInfo(
 {
     PAGED_CODE();
     VIOGPU_ASSERT_CHK(hAdapter != NULL);
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_FATAL, ("<---> %s\n", __FUNCTION__));
 
     VioGpuDod* pVioGpuDod = reinterpret_cast<VioGpuDod*>(hAdapter);
     return pVioGpuDod->QueryAdapterInfo(pQueryAdapterInfo);
@@ -729,6 +722,43 @@ VioGpuDodSystemDisplayWrite(
 
     VioGpuDod* pVioGpuDod = reinterpret_cast<VioGpuDod*>(pDeviceContext);
     pVioGpuDod->SystemDisplayWrite(Source, SourceWidth, SourceHeight, SourceStride, PositionX, PositionY);
+}
+
+VOID
+APIENTRY
+VioGpuDodEscape(
+    _In_  VOID* pDeviceContext,
+    _In_  VOID* Source,
+    _In_  UINT  SourceWidth,
+    _In_  UINT  SourceHeight,
+    _In_  UINT  SourceStride,
+    _In_  UINT  PositionX,
+    _In_  UINT  PositionY)
+{
+    VIOGPU_ASSERT_CHK(pDeviceContext != NULL);
+    DbgPrint(TRACE_LEVEL_INFORMATION, ("<---> %s\n", __FUNCTION__));
+
+    VioGpuDod* pVioGpuDod = reinterpret_cast<VioGpuDod*>(pDeviceContext);
+    pVioGpuDod->SystemDisplayWrite(Source, SourceWidth, SourceHeight, SourceStride, PositionX, PositionY);
+}
+
+NTSTATUS APIENTRY VioGpuDodEscape(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_ESCAPE *pEscape)
+{
+    DbgPrint(TRACE_LEVEL_FATAL, ("---> %s\n", __FUNCTION__));
+    UNREFERENCED_PARAMETER(hAdapter);
+    UNREFERENCED_PARAMETER(pEscape);
+
+    //TODO: Reenable
+    //GpuDevice* pVioGpuDod = reinterpret_cast<GpuDevice*>(hAdapter);
+    //NTSTATUS res = pVioGpuDod->Escape(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
+    (void)hAdapter;
+    (void)pEscape;
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+	//return res;
 }
 
 #if defined(DBG)

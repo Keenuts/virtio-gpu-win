@@ -200,3 +200,6 @@ VioGpuDodSystemDisplayWrite(
     _In_  UINT  PositionX,
     _In_  UINT  PositionY);
 
+NTSTATUS APIENTRY VioGpuDodEscape(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_ESCAPE *pEscape);

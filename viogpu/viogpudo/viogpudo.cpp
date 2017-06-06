@@ -94,10 +94,13 @@ NTSTATUS VioGpuDod::StartDevice(_In_  DXGK_START_INFO*   pDxgkStartInfo,
 
     if (CheckHardware())
     {
+        DbgPrint(TRACE_LEVEL_VERBOSE, ("Creating GpuDevice\n"));
         m_pHWDevice = new(NonPagedPoolNx) GpuDevice(this);
     }
     else
     {
+        DbgPrint(TRACE_LEVEL_VERBOSE, ("Creating VgaDevice\n"));
+        ASSERT(0); //For now, since I absolutely do not want to try  VGA devices
         m_pHWDevice = new(NonPagedPoolNx) VgaDevice(this);
     }
 
@@ -406,6 +409,12 @@ NTSTATUS VioGpuDod::QueryAdapterInfo(_In_ CONST DXGKARG_QUERYADAPTERINFO* pQuery
             pDriverCaps->SupportSmoothRotation = TRUE;
             DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s 1\n", __FUNCTION__));
             return STATUS_SUCCESS;
+        }
+
+        case DXGKQAITYPE_UMDRIVERPRIVATE:
+        {
+            DbgPrint(TRACE_LEVEL_FATAL, ("<--> Success !\n", __FUNCTION__));
+            return STATUS_NOLOGON_INTERDOMAIN_TRUST_ACCOUNT;
         }
 
         default:
@@ -2475,7 +2484,7 @@ GpuDevice::GpuDevice(_In_ VioGpuDod* pVioGpuDod) : HwDeviceInterface(pVioGpuDod)
                       FALSE);
     m_bStopWorkThread = FALSE;
     m_pWorkThread = NULL;
-	api_fwd::initialize_entries(&m_entries);
+    api_fwd::initialize_entries(&m_entries);
 }
 
 GpuDevice::~GpuDevice(void)
@@ -3595,8 +3604,8 @@ NTSTATUS GpuDevice::Escape(VOID* data, UINT32 size)
 {
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> %s\n", __FUNCTION__));
 
-	UINT32 hash = *(UINT32*)data;
-	VOID *payload = static_cast<UINT32*>(data) + 1;
-	return api_fwd::call_entry(&m_CtrlQueue, m_entries, hash, payload, size);
+    UINT32 hash = *(UINT32*)data;
+    VOID *payload = static_cast<UINT32*>(data) + 1;
+    return api_fwd::call_entry(&m_CtrlQueue, m_entries, hash, payload, size);
 }
 
