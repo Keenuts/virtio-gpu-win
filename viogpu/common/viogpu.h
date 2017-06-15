@@ -223,6 +223,7 @@ typedef struct virtio_gpu_api_fowarding {
     GPU_CTRL_HDR hdr;
 	UINT32 function;
     BYTE data[APIFWD_BUFFER_SIZE];
+    UINT32 filler;
 }GPU_APIFWD, *PGPU_APIFWD;
 #pragma pack()
 

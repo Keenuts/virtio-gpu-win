@@ -12,6 +12,7 @@ namespace api_fwd
 		entry func;
 	};
 
+    UINT32 gnu_hash(const char* s);
 	NTSTATUS initialize_entries(bundle_s **entries);
 	NTSTATUS call_entry(CtrlQueue  *queue, bundle_s *entries, UINT32 hash, VOID* data, UINT32 size);
 

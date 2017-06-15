@@ -196,6 +196,7 @@ public:
     VioGpuDod* GetVioGpu(void) {return m_pVioGpuDod;}
     virtual NTSTATUS AcquireFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) = 0;
     virtual NTSTATUS ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) = 0;
+
 protected:
     virtual NTSTATUS GetModeList(DXGK_DISPLAY_INFORMATION* pDispInfo) = 0;
 protected:
@@ -438,6 +439,8 @@ public:
                                  _In_                                     INT   PositionY);
 
     PDXGKRNL_INTERFACE GetDxgkInterface(void) { return &m_DxgkInterface;}
+    NTSTATUS APIENTRY Escape(_In_ const HANDLE hAdapter, _In_ const DXGKARG_ESCAPE *pEscape);
+
 private:
     VOID CleanUp(VOID);
     BOOLEAN CheckHardware();

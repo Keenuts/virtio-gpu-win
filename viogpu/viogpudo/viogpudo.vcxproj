@@ -186,6 +186,7 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win10_x86\i386\</OutDir>
     <IntDir>objchk_win10_x86\i386\</IntDir>
+    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -220,6 +221,7 @@
     <LibraryPath>..\..\VirtIO\objchk_win10_amd64\amd64;$(LibraryPath)</LibraryPath>
     <DiagnosticMode>true</DiagnosticMode>
     <TimeStampServer />
+    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>

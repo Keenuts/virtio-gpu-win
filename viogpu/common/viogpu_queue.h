@@ -149,7 +149,7 @@ public:
 //    void ContextDestroy(UINT id);
 //    void AttachResource(UINT cid, UINT rid);
 //    void DetachResource(UINT cid, UINT rid);
-	void CreateContext(UINT64 data[APIFWD_BUFFER_SIZE]);
+	void CreateContext(UINT32 ctx_id);
 	void MakeCurrent(UINT64 data[APIFWD_BUFFER_SIZE]);
 	void DeleteContext(UINT64 data[APIFWD_BUFFER_SIZE]);
 	void ApiForward(UINT hash, UINT64 data[APIFWD_BUFFER_SIZE]);

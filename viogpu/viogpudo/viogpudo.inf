@@ -8,7 +8,7 @@ Signature="$Windows NT$"
 Class=Display
 ClassGUID={4d36e968-e325-11ce-bfc1-08002be10318}
 Provider=%RHEL%
-DriverVer= 09/05/2016, 1.01.01.0001
+DriverVer= 06/06/2016, 1.01.01.0001
 CatalogFile=viogpudo.cat
 
 [DestinationDirs]

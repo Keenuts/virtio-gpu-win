@@ -6,7 +6,7 @@
 #define ENTRIES_COUNT 10
 
 // From Oracle blog GNU HASH for elf symbols
-UINT32 gnu_hash(const char* s) {
+UINT32 api_fwd::gnu_hash(const char* s) {
 	UINT32 h = 5381;
 	for (UCHAR c = *s; c != 0; c = *s++)
 		h = h * 33 + c;
@@ -44,10 +44,16 @@ NTSTATUS api_fwd::initialize_entries(api_fwd::bundle_s **entries) {
 
 NTSTATUS api_fwd::call_entry(CtrlQueue *queue, api_fwd::bundle_s *entries, UINT32 hash, VOID *data, UINT32 size) {
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> %s\n", __FUNCTION__));
+
+    ASSERT(queue);
+    ASSERT(entries);
+
 	for (UINT32 i = 0; i < ENTRIES_COUNT; i++)
 		if (entries[i].hash == hash)
 			return entries[i].func(queue, hash, data, size);
-	return STATUS_DEVICE_FEATURE_NOT_SUPPORTED;
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("[ERROR] %s: Unknown symbol called : %u\n", __FUNCTION__, hash));
+	return STATUS_INVALID_PARAMETER_3;
 }
 
 
@@ -60,11 +66,12 @@ NTSTATUS api_fwd::call_entry(CtrlQueue *queue, api_fwd::bundle_s *entries, UINT3
 #define DUMB_FW_FUNCTION(FunctionName)												      \
 NTSTATUS api_fwd::FunctionName(CtrlQueue *queue, UINT32 hash, VOID *payload, UINT size) { \
 	PAGED_CODE();																		  \
-    DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));                           \
-	UINT64 data[APIFWD_BUFFER_SIZE];                                                      \
-	memcpy(data, payload, size);                                                          \
+    DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));                             \
+    UINT64 data[APIFWD_BUFFER_SIZE];                                                      \
+    if (payload != NULL)                                                                  \
+        memcpy(data, payload, size);                                                      \
 	queue->ApiForward(hash, data);                                                        \
-    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));                           \
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));                             \
 	return STATUS_SUCCESS;                                                                \
 }
 
@@ -82,9 +89,16 @@ NTSTATUS api_fwd::wglCreateContext(CtrlQueue *queue, UINT32 hash, VOID *payload,
 	DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));
 	UNREFERENCED_PARAMETER(hash);
 
-	UINT64 data[APIFWD_BUFFER_SIZE];
-	memcpy(data, payload, size);
-	queue->CreateContext(data);
+    if (!queue)
+        return STATUS_INVALID_PARAMETER_1;
+    if (!payload)
+        return STATUS_INVALID_PARAMETER_3;
+    if (size != sizeof(UINT32))
+        return STATUS_INVALID_PARAMETER_4;
+
+    UINT32 *id = (UINT32*)payload;
+	queue->CreateContext(*id);
+
 	DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
 	return STATUS_SUCCESS;
 }

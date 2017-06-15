@@ -78,10 +78,6 @@ NTSTATUS APIENTRY VioGpu3dDdiDestroyDevice(
 NTSTATUS APIENTRY VioGpu3dDdiDestroyOverlay(
     _In_ const HANDLE hOverlay);
 
-NTSTATUS APIENTRY VioGpu3dDdiEscape(
-    _In_ const HANDLE hAdapter,
-    _In_ const DXGKARG_ESCAPE *pEscape);
-
 NTSTATUS APIENTRY VioGpu3dDdiFlipOverlay(
     _In_ const HANDLE hOverlay,
     _In_ const DXGKARG_FLIPOVERLAY *pFlipOverlay);

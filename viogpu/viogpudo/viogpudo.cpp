@@ -94,12 +94,12 @@ NTSTATUS VioGpuDod::StartDevice(_In_  DXGK_START_INFO*   pDxgkStartInfo,
 
     if (CheckHardware())
     {
-        DbgPrint(TRACE_LEVEL_VERBOSE, ("Creating GpuDevice\n"));
+        DbgPrint(TRACE_LEVEL_FATAL, ("Creating GpuDevice\n"));
         m_pHWDevice = new(NonPagedPoolNx) GpuDevice(this);
     }
     else
     {
-        DbgPrint(TRACE_LEVEL_VERBOSE, ("Creating VgaDevice\n"));
+        DbgPrint(TRACE_LEVEL_FATAL, ("Creating VgaDevice\n"));
         ASSERT(0); //For now, since I absolutely do not want to try  VGA devices
         m_pHWDevice = new(NonPagedPoolNx) VgaDevice(this);
     }
@@ -1891,6 +1891,19 @@ NTSTATUS VioGpuDod::RegisterHWInfo(_In_ ULONG Id)
     return Status;
 }
 
+NTSTATUS APIENTRY VioGpuDod::Escape(
+    _In_ const HANDLE hAdapter,
+    _In_ const DXGKARG_ESCAPE *pEscape)
+{
+    DbgPrint(TRACE_LEVEL_FATAL, ("---> [GENERIC] %s\n", __FUNCTION__));
+    GpuDevice *gpuDevice = reinterpret_cast<GpuDevice*>(m_pHWDevice);
+    NTSTATUS res = gpuDevice->Escape(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
+    UNREFERENCED_PARAMETER(res);
+    UNREFERENCED_PARAMETER(hAdapter);
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- [GENERIC] %s\n", __FUNCTION__));
+	return res;
+}
 
 //
 // Non-Paged Code
@@ -2682,6 +2695,17 @@ NTSTATUS GpuDevice::HWInit(PCM_RESOURCE_LIST pResList, DXGK_DISPLAY_INFORMATION*
             status = STATUS_UNSUCCESSFUL;
             break;
         }
+#if 1
+#define VIRTIO_GPU_F_VIRGL 0
+        if (!AckFeature(VIRTIO_GPU_F_VIRGL))
+        {
+            DbgPrint(TRACE_LEVEL_FATAL, ("Cannot enable VIRGL feature.\n"));
+            status = STATUS_UNSUCCESSFUL;
+            break;
+        }
+        else
+            DbgPrint(TRACE_LEVEL_FATAL, ("[INFO] VirGL feature enabled.\n"));
+#endif
 
         status = virtio_set_features(&m_VioDev, m_u64GuestFeatures);
         if (!NT_SUCCESS(status))
@@ -3602,10 +3626,10 @@ BOOLEAN GpuDevice::GpuObjectAttach(UINT res_id, VioGpuObj* obj)
 
 NTSTATUS GpuDevice::Escape(VOID* data, UINT32 size)
 {
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<---> [GPUDEVICE] %s\n", __FUNCTION__));
 
     UINT32 hash = *(UINT32*)data;
     VOID *payload = static_cast<UINT32*>(data) + 1;
+    size = size - sizeof(UINT32);
     return api_fwd::call_entry(&m_CtrlQueue, m_entries, hash, payload, size);
 }
-

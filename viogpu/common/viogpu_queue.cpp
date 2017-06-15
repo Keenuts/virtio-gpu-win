@@ -233,6 +233,7 @@ UINT CtrlQueue::QueueBufferLocked(PGPU_VBUFFER buf)
     ASSERT(outcnt);
     ASSERT((outcnt + incnt) <= 16);
     ret = AddBuf(&sg[0], outcnt, incnt, buf, NULL, 0);
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("%s ret = %d\n", __FUNCTION__, ret));
     Kick();
     if (!ret)
     {
@@ -800,6 +801,7 @@ void CtrlQueue::ApiForward(UINT hash, UINT64 data[APIFWD_BUFFER_SIZE])
 
     DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
     PGPU_APIFWD cmd;
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("Sizeof command sent: %zu\n", sizeof(cmd)));
     PGPU_VBUFFER vbuf;
     cmd = (PGPU_APIFWD)AllocCmd(&vbuf, sizeof(*cmd));
     RtlZeroMemory(cmd, sizeof(*cmd));
@@ -813,7 +815,7 @@ void CtrlQueue::ApiForward(UINT hash, UINT64 data[APIFWD_BUFFER_SIZE])
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
 }
 
-void CtrlQueue::CreateContext(UINT64 data[APIFWD_BUFFER_SIZE]) {
+void CtrlQueue::CreateContext(UINT32 ctx_id) {
     PAGED_CODE();
 
     DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));
@@ -823,16 +825,16 @@ void CtrlQueue::CreateContext(UINT64 data[APIFWD_BUFFER_SIZE]) {
     RtlZeroMemory(cmd, sizeof(*cmd));
 
     cmd->hdr.type = VIRTIO_GPU_CMD_CTX_CREATE;
-	//FIXME
-	UNREFERENCED_PARAMETER(data);
+    cmd->hdr.ctx_id = ctx_id;
+    cmd->hdr.fence_id = 0;
 	cmd->nlen = 512;
 	cmd->padding = 0;
 
-	char debug_name[] = "simple_context";
+	char debug_name[] = "windows_krnl_ctx";
 	memcpy(cmd->debug_name, debug_name, sizeof(debug_name));
 
-    QueueBuffer(vbuf);
-    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+    UINT ret = QueueBuffer(vbuf);
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s = %u \n", __FUNCTION__, ret));
 }
 
 void CtrlQueue::MakeCurrent(UINT64 data[APIFWD_BUFFER_SIZE]) {

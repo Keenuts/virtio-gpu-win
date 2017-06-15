@@ -211,26 +211,6 @@ NTSTATUS APIENTRY VioGpu3dDdiDestroyOverlay(
 	return STATUS_SUCCESS;
 }
 
-NTSTATUS APIENTRY VioGpu3dDdiEscape(
-    _In_ const HANDLE hAdapter,
-    _In_ const DXGKARG_ESCAPE *pEscape)
-{
-    DbgPrint(TRACE_LEVEL_FATAL, ("---> %s\n", __FUNCTION__));
-    UNREFERENCED_PARAMETER(hAdapter);
-    UNREFERENCED_PARAMETER(pEscape);
-
-    //TODO: Reenable
-    //GpuDevice* pVioGpuDod = reinterpret_cast<GpuDevice*>(hAdapter);
-    //NTSTATUS res = pVioGpuDod->Escape(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
-    (void)hAdapter;
-    (void)pEscape;
-
-    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s\n", __FUNCTION__));
-    return STATUS_SUCCESS;
-	//return res;
-}
-
-
 NTSTATUS APIENTRY VioGpu3dDdiFlipOverlay(
     _In_ const HANDLE hOverlay,
     _In_ const DXGKARG_FLIPOVERLAY *pFlipOverlay)
