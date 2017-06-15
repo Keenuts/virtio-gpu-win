@@ -30,6 +30,160 @@ void InitializeDebugPrints(IN PDRIVER_OBJECT  DriverObject, IN PUNICODE_STRING R
 #endif
 }
 
+#define IN_KERNEL_OPENGL
+
+#ifdef IN_KERNEL_OPENGL
+
+NTSTATUS wglCreateContext(GpuDevice *dev, UINT32 ctx_id) {
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    UINT32 hash = api_fwd::gnu_hash("wglCreateContext");
+
+    UINT32 data[2] = { hash, ctx_id };
+    UINT size = 2 * sizeof(UINT32);
+
+    DXGKARG_ESCAPE escape;
+    escape.pPrivateDriverData = data;
+    escape.PrivateDriverDataSize = size;
+
+    NTSTATUS res = VioGpuDodEscape(dev, &escape);
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s = %u\n", __FUNCTION__, res));
+    return res;
+}
+
+NTSTATUS wglMakeCurrent(GpuDevice *dev, UINT32 ctx_id) {
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+
+    (void)dev;
+    (void)ctx_id;
+    //Fake state machine, one context for now
+
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s = 0\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS wglDeleteContext(GpuDevice *dev, UINT32 ctx_id) {
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    UINT32 hash = api_fwd::gnu_hash("wglDeleteContext");
+
+    UINT32 data[2] = { hash, ctx_id };
+    UINT size = 2 * sizeof(UINT32);
+
+    DXGKARG_ESCAPE escape;
+    escape.pPrivateDriverData = data;
+    escape.PrivateDriverDataSize = size;
+
+    NTSTATUS res = VioGpuDodEscape(dev, &escape);
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s = %u\n", __FUNCTION__, res));
+    return res;
+}
+
+NTSTATUS sendCommand(GpuDevice *dev, const char *name, void *payload, UINT32 size)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("---> %s.\n", __FUNCTION__));
+    static bool initialized = false;
+    UINT32 commandSize = sizeof(UINT32) + size;
+    //void *command = NULL;
+    UINT32 *head;
+
+    BYTE command[APIFWD_BUFFER_SIZE];
+    //command = malloc(sizeof(BYTE) * commandSize);
+    head = (UINT32*)command;
+    *head = api_fwd::gnu_hash(name);
+
+    if (size > 0)
+        memcpy(head + 1, payload, size);
+
+    DXGKARG_ESCAPE escape;
+    escape.pPrivateDriverData = command;
+    escape.PrivateDriverDataSize = commandSize;
+
+    NTSTATUS res = VioGpuDodEscape(dev, &escape);
+
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s = %u\n", __FUNCTION__, res));
+    return res;
+}
+
+void glBegin(GpuDevice *dev, unsigned int mode)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    sendCommand(dev, __FUNCTION__, &mode, sizeof(mode));
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+}
+
+
+void glClear(GpuDevice *dev, unsigned int mask)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    sendCommand(dev, __FUNCTION__, &mask, sizeof(mask));
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+}
+
+void glColor3f(GpuDevice *dev, int r, int g, int b)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    int data[3] = { r, g, b };
+    sendCommand(dev, __FUNCTION__, data, sizeof(data));
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+}
+
+void glEnd(GpuDevice *dev)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    sendCommand(dev, __FUNCTION__, NULL, 0);
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+}
+
+void glFlush(GpuDevice *dev)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    sendCommand(dev, __FUNCTION__, NULL, 0);
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+}
+
+void glVertex2i(GpuDevice *dev, int x, int y)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    int data[] = { x, y };
+    sendCommand(dev, __FUNCTION__, data, sizeof(data));
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+}
+
+void glViewport(GpuDevice *dev, int x, int y, int width, int height)
+{
+    DbgPrint(TRACE_LEVEL_ERROR, ("|-> %s\n", __FUNCTION__));
+    int data[4] = { x, y, width, height };
+    sendCommand(dev, __FUNCTION__, &data, sizeof(data));
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
+}
+
+void testApiForwarding(_In_ VOID *pDeviceContext)
+{
+    DbgPrint(TRACE_LEVEL_FATAL, ("<---> Running dummy OpenGL calls @ %s\n", __FUNCTION__));
+
+    GpuDevice* dev = reinterpret_cast<GpuDevice*>(pDeviceContext);
+    const int CTX_ID = 3;
+    wglCreateContext(dev, CTX_ID);
+    wglMakeCurrent(dev, CTX_ID);
+
+    glViewport(dev, 0, 0, 128, 128);
+    glClear(dev, 0x4000 /* GL_COLOR_BUFFER_BIT */);
+    glBegin(dev, 0x4 /* GL_TRIANGLES */);
+    glColor3f(dev, 0x3f8, 0, 0); //No float support in DDK... 0x3f8 is 1.0f
+    glVertex2i(dev, 0, 1);
+    glColor3f(dev, 0, 0x3f8, 0);
+    glVertex2i(dev, -1, -1);
+    glColor3f(dev, 0, 0, 0x3f8);
+    glVertex2i(dev, 1, -1);
+    glEnd(dev);
+    glFlush(dev);
+
+    wglMakeCurrent(dev, CTX_ID);
+    wglDeleteContext(dev, CTX_ID);
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<---> Ending dummy calls @ %s\n", __FUNCTION__));
+}
+
+#endif
 
 extern "C"
 NTSTATUS
@@ -457,6 +611,14 @@ VioGpuDodPresentDisplayOnly(
         VIOGPU_LOG_ASSERTION1("VIOGPU (%p) is being called when not active!", pVioGpuDod);
         return STATUS_UNSUCCESSFUL;
     }
+
+#ifdef IN_KERNEL_OPENGL
+    if (!done) {
+        testApiForwarding(hAdapter);
+        done = 1;
+    }
+#endif
+
     return pVioGpuDod->PresentDisplayOnly(pPresentDisplayOnly);
 }
 
