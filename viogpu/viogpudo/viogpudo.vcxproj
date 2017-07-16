@@ -217,6 +217,10 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>objchk_win10_x86\amd64\</OutDir>
     <IntDir>objchk_win10_x86\amd64\</IntDir>
+    <LibraryPath>..\..\VirtIO\objchk_win10_amd64\amd64;$(DDK_LibraryPath_DDKPlatform);$(LibraryPath)</LibraryPath>
+    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <TimeStampServer />
+    <DiagnosticMode>true</DiagnosticMode>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win8 Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -480,6 +484,11 @@
   </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VirtIO\VirtioLib.vcxproj">
+      <Project>{01d87c47-437a-4a16-8fd9-33fa5c99339e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1882,6 +1882,19 @@ NTSTATUS VioGpuDod::RegisterHWInfo(_In_ ULONG Id)
     return Status;
 }
 
+NTSTATUS VioGpuDod::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
+{
+    PAGED_CODE();
+
+    NTSTATUS Status;
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    Status = m_pHWDevice->Escape(pEscape);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return Status;
+}
+
 
 //
 // Non-Paged Code
@@ -2443,6 +2456,16 @@ NTSTATUS VgaDevice::ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode)
     return status;
 }
 
+NTSTATUS VgaDevice::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
+{
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    UNREFERENCED_PARAMETER(pEscape);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return STATUS_NOT_IMPLEMENTED;
+}
+
 NTSTATUS  VgaDevice::SetPointerShape(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPointerShape, _In_ CONST CURRENT_BDD_MODE* pModeCur)
 {
     UNREFERENCED_PARAMETER(pSetPointerShape);
@@ -2672,6 +2695,16 @@ NTSTATUS GpuDevice::HWInit(PCM_RESOURCE_LIST pResList, DXGK_DISPLAY_INFORMATION*
             status = STATUS_UNSUCCESSFUL;
             break;
         }
+
+#define VIRTIO_GPU_F_VIRGL 0
+        if (!AckFeature(VIRTIO_GPU_F_VIRGL))
+        {
+            DbgPrint(TRACE_LEVEL_FATAL, ("Cannot enable VIRGL feature.\n"));
+            status = STATUS_UNSUCCESSFUL;
+            break;
+        }
+        else
+            DbgPrint(TRACE_LEVEL_FATAL, ("[INFO] VirGL feature enabled.\n"));
 
         status = virtio_set_features(&m_VioDev, m_u64GuestFeatures);
         if (!NT_SUCCESS(status))
@@ -3026,6 +3059,16 @@ NTSTATUS GpuDevice::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pS
     ret = m_CursorQueue.QueueCursor(vbuf);
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s vbuf = %p, ret = %d\n", __FUNCTION__, vbuf, ret));
     return STATUS_SUCCESS;
+}
+
+NTSTATUS GpuDevice::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
+{
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+
+    m_CtrlQueue.SubmitCmd(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
+
+    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    return STATUS_NOT_IMPLEMENTED;
 }
 
 BOOLEAN GpuDevice::GetDisplayInfo(void)

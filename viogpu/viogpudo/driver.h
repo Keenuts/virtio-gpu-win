@@ -106,6 +106,11 @@ VioGpuDodSetPointerShape(
     _In_ CONST DXGKARG_SETPOINTERSHAPE*       pSetPointerShape);
 
 NTSTATUS
+VioGpuDod3DEscape(
+    _In_ CONST HANDLE hAdapter,
+    _In_ CONST DXGKARG_ESCAPE *pEscape);
+
+NTSTATUS
 VioGpuDodQueryInterface(
     _In_ CONST PVOID                          pDeviceContext,
     _In_ CONST PQUERY_INTERFACE               pQueryInterface);

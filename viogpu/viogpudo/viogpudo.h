@@ -195,6 +195,8 @@ public:
     VioGpuDod* GetVioGpu(void) {return m_pVioGpuDod;}
     virtual NTSTATUS AcquireFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) = 0;
     virtual NTSTATUS ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) = 0;
+    virtual NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape) = 0;
+
 protected:
     virtual NTSTATUS GetModeList(DXGK_DISPLAY_INFORMATION* pDispInfo) = 0;
 protected:
@@ -239,6 +241,7 @@ public:
     NTSTATUS SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pSetPointerPosition, _In_ CONST CURRENT_BDD_MODE* pModeCur);
     NTSTATUS AcquireFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode);
     NTSTATUS ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode);
+    NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape);
 protected:
     NTSTATUS GetModeList(DXGK_DISPLAY_INFORMATION* pDispInfo);
 private:
@@ -277,6 +280,7 @@ public:
     CPciResources* GetPciResources(void) { return &m_PciResources; }
     NTSTATUS AcquireFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) { UNREFERENCED_PARAMETER(pCurrentBddMode);  return STATUS_SUCCESS; }
     NTSTATUS ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode) { UNREFERENCED_PARAMETER(pCurrentBddMode);  return STATUS_SUCCESS; }
+    NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape);
 
 protected:
 private:
@@ -416,6 +420,7 @@ public:
     // Part of PnPStop (PnP instance only), returns current mode information (which will be passed to fallback instance by dxgkrnl)
     NTSTATUS StopDeviceAndReleasePostDisplayOwnership(_In_  D3DDDI_VIDEO_PRESENT_TARGET_ID TargetId,
                                                       _Out_ DXGK_DISPLAY_INFORMATION*      pDisplayInfo);
+    NTSTATUS Escape(_In_ CONST DXGKARG_ESCAPE *pEscape);
 
     // Must be Non-Paged
     // Call to initialize as part of bugcheck
