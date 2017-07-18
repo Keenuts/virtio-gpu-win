@@ -1887,11 +1887,11 @@ NTSTATUS VioGpuDod::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
     PAGED_CODE();
 
     NTSTATUS Status;
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));
 
     Status = m_pHWDevice->Escape(pEscape);
 
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
     return Status;
 }
 
@@ -2458,11 +2458,11 @@ NTSTATUS VgaDevice::ReleaseFrameBuffer(CURRENT_BDD_MODE* pCurrentBddMode)
 
 NTSTATUS VgaDevice::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
 {
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_ERROR, ("---> %s\n", __FUNCTION__));
 
     UNREFERENCED_PARAMETER(pEscape);
 
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_ERROR, ("<--- %s\n", __FUNCTION__));
     return STATUS_NOT_IMPLEMENTED;
 }
 
@@ -3061,14 +3061,127 @@ NTSTATUS GpuDevice::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pS
     return STATUS_SUCCESS;
 }
 
+struct gpu_allocate_object_t {
+    UINT32 driver_cmd;
+    UINT32 size;
+    UINT64 handle;
+};
+
+struct gpu_update_object_t {
+    UINT32 driver_cmd;
+    UINT64 handle;
+    UINT32 size;
+    VOID* ptr;
+};
+
+struct gpu_delete_object_t {
+    UINT32 driver_cmd;
+    UINT64 handle;
+};
+
+static NTSTATUS escapeCreateObject(VOID *data, UINT32 size)
+{
+    DbgPrint(TRACE_LEVEL_FATAL, ("---> %s\n", __FUNCTION__));
+    gpu_allocate_object_t *info = (gpu_allocate_object_t*)data;
+
+    if (size != sizeof(gpu_allocate_object_t))
+        return STATUS_INVALID_BUFFER_SIZE;
+
+    VioGpuObj *obj = new(NonPagedPoolNx)VioGpuObj();
+    if (!obj)
+        return STATUS_NO_MEMORY;
+
+    if (!obj->Init(info->size))
+        return STATUS_NO_MEMORY;
+
+    info->handle = (UINT64)obj;
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+}
+
+static NTSTATUS escapeUpdateObject(VOID *data, UINT32 size)
+{
+    DbgPrint(TRACE_LEVEL_FATAL, ("---> %s\n", __FUNCTION__));
+    gpu_update_object_t *info = (gpu_update_object_t*)data;
+
+    if (size != sizeof(gpu_update_object_t))
+        return STATUS_INVALID_BUFFER_SIZE;
+
+    VioGpuObj *object = (VioGpuObj*)info->handle;
+    if (!object)
+        return STATUS_INVALID_PARAMETER_1;
+
+    VOID *ptr = object->GetVirtualAddress();
+
+    __try {
+        memcpy_s(ptr, info->size, info->ptr, info->size);
+    }
+#pragma prefast(suppress: __WARNING_EXCEPTIONEXECUTEHANDLER, "try/except is only able to protect against user-mode errors");
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        DbgPrint(TRACE_LEVEL_ERROR, ("Either dst (0x%I64x) or src (0x%I64x) bits encountered exception during access.\n", ptr, info->ptr));
+        return STATUS_INVALID_PARAMETER_2;
+    }
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+}
+
+static NTSTATUS escapeFreeObject(VOID *data, UINT32 size)
+{
+    DbgPrint(TRACE_LEVEL_FATAL, ("---> %s\n", __FUNCTION__));
+    gpu_delete_object_t *info = (gpu_delete_object_t*)data;
+
+    if (size != sizeof(gpu_delete_object_t))
+        return STATUS_INVALID_BUFFER_SIZE;
+
+    VioGpuObj *object = (VioGpuObj*)info->handle;
+    if (!object)
+        return STATUS_INVALID_PARAMETER_1;
+
+    __try {
+        delete object;
+    }
+#pragma prefast(suppress: __WARNING_EXCEPTIONEXECUTEHANDLER, "try/except is only able to protect against user-mode errors");
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        DbgPrint(TRACE_LEVEL_ERROR, ("Handle is not valid (0x%I64x).\n", object));
+        return STATUS_INVALID_PARAMETER_1;
+    }
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s\n", __FUNCTION__));
+    return STATUS_SUCCESS;
+}
+
 NTSTATUS GpuDevice::Escape(_In_ CONST DXGKARG_ESCAPE *pEscape)
 {
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_FATAL, ("---> %s\n", __FUNCTION__));
 
-    m_CtrlQueue.SubmitCmd(pEscape->pPrivateDriverData, pEscape->PrivateDriverDataSize);
+    NTSTATUS res = STATUS_SUCCESS;
+    UINT32 *cmd_type = (UINT32*)pEscape->pPrivateDriverData;
+    VOID *data = cmd_type + 1;
+    const UINT32 size = pEscape->PrivateDriverDataSize - sizeof(UINT32);
 
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
-    return STATUS_NOT_IMPLEMENTED;
+    switch (*cmd_type) {
+    case DRIVER_CMD_ALLOCATE:
+        res = escapeCreateObject(data, size);
+        break;
+    case DRIVER_CMD_UPDATE:
+        res = escapeUpdateObject(data, size);
+        break;
+    case DRIVER_CMD_FREE:
+        res = escapeFreeObject(data, size);
+        break;
+    case DRIVER_CMD_TRANSFER:
+        m_CtrlQueue.SubmitCmd(data, size);
+        res = STATUS_SUCCESS;
+        break;
+    default:
+        res = STATUS_INVALID_TOKEN;
+        break;
+    }
+
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s\n", __FUNCTION__));
+    return res;
 }
 
 BOOLEAN GpuDevice::GetDisplayInfo(void)

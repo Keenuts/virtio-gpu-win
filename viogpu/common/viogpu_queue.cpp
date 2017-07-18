@@ -460,7 +460,7 @@ void CtrlQueue::SubmitCmd(VOID *data, UINT32 size)
 {
     PAGED_CODE();
 
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("---> %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_FATAL, ("---> %s\n", __FUNCTION__));
 
     VOID *cmd;
     PGPU_VBUFFER vbuf;
@@ -470,7 +470,7 @@ void CtrlQueue::SubmitCmd(VOID *data, UINT32 size)
 //FIXME add fence 
     QueueBuffer(vbuf);
 
-    DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));
+    DbgPrint(TRACE_LEVEL_FATAL, ("<--- %s\n", __FUNCTION__));
 }
 
 

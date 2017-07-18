@@ -4,6 +4,13 @@
 extern "C"
 DRIVER_INITIALIZE DriverEntry;
 
+enum driver_cmd {
+    DRIVER_CMD_INVALID = 0,
+    DRIVER_CMD_TRANSFER = 1,
+    DRIVER_CMD_ALLOCATE,
+    DRIVER_CMD_UPDATE,
+    DRIVER_CMD_FREE,
+};
 //
 // PnP DDIs
 //
